@@ -11,16 +11,7 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = [
-  "https://public-lemon-ten.vercel.app",
-  "http://localhost:3000",
-];
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true, // Only if you use cookies/sessions
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/uploads", express.static("uploads"));
