@@ -47,9 +47,13 @@ router.post("/", upload.single("image"), async (req, res) => {
     console.log("Request file:", req.file);
 
     const { title, description, email } = req.body;
-    
+
     if (!title || !description || !email) {
-      console.log("Missing required fields:", { title: !!title, description: !!description, email: !!email });
+      console.log("Missing required fields:", {
+        title: !!title,
+        description: !!description,
+        email: !!email,
+      });
       return res
         .status(400)
         .json({ error: "Title, description, and email are required" });
@@ -66,7 +70,7 @@ router.post("/", upload.single("image"), async (req, res) => {
 
     const post = new Post(postData);
     const savedPost = await post.save();
-    
+
     console.log("Post saved successfully:", savedPost);
     res.status(201).json(savedPost);
   } catch (err) {
@@ -75,18 +79,29 @@ router.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
-// Like a post
-router.post("/like/:id", async (req, res) => {
+// Toggle like/unlike a post
+router.post("/:id/like", async (req, res) => {
   try {
-    const post = await Post.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { likeCount: 1 } },
-      { new: true }
-    );
-    if (!post) return res.status(404).json({ error: "Post not found" });
-    res.json({ likeCount: post.likeCount });
+    // Assume user is authenticated and user ID is available as req.user.id
+    const userId = req.user.id;
+    const post = await Post.findById(req.params.id);
+
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const liked = post.likes.includes(userId);
+
+    if (liked) {
+      // Unlike
+      post.likes = post.likes.filter((id) => id.toString() !== userId);
+    } else {
+      // Like
+      post.likes.push(userId);
+    }
+
+    await post.save();
+    res.json({ likes: post.likes.length, liked: !liked });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message });
   }
 });
 
