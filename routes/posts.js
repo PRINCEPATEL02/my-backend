@@ -3,6 +3,7 @@ const router = express.Router();
 const Post = require("../models/Post");
 const multer = require("multer");
 const path = require("path");
+const auth = require("../middleware/auth");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -31,6 +32,7 @@ router.get("/", async (req, res) => {
   try {
     console.log("Fetching all posts...");
     const posts = await Post.find().sort({ createdAt: -1 });
+
     console.log(`Found ${posts.length} posts`);
     res.json(posts);
   } catch (err) {
@@ -76,32 +78,6 @@ router.post("/", upload.single("image"), async (req, res) => {
   } catch (err) {
     console.error("Error creating post:", err);
     res.status(500).json({ error: err.message });
-  }
-});
-
-// Toggle like/unlike a post
-router.post("/:id/like", async (req, res) => {
-  try {
-    // Assume user is authenticated and user ID is available as req.user.id
-    const userId = req.user.id;
-    const post = await Post.findById(req.params.id);
-
-    if (!post) return res.status(404).json({ message: "Post not found" });
-
-    const liked = post.likes.includes(userId);
-
-    if (liked) {
-      // Unlike
-      post.likes = post.likes.filter((id) => id.toString() !== userId);
-    } else {
-      // Like
-      post.likes.push(userId);
-    }
-
-    await post.save();
-    res.json({ likes: post.likes.length, liked: !liked });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
   }
 });
 
