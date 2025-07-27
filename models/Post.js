@@ -10,4 +10,8 @@ const PostSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Add index on createdAt for faster sorting
+PostSchema.index({ createdAt: -1 });
+
+
 module.exports = mongoose.model("Post", PostSchema);

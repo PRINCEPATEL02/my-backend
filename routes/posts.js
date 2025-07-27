@@ -67,12 +67,17 @@ router.post("/", upload.single("image"), async (req, res) => {
     let imagekitResponse = null;
 
     if (req.file) {
-      // Upload image buffer to ImageKit
-      imagekitResponse = await imagekit.upload({
-        file: req.file.buffer.toString("base64"), // base64 encoded image
-        fileName: Date.now() + path.extname(req.file.originalname),
-      });
-      imageUrl = imagekitResponse.url;
+      try {
+        // Upload image buffer to ImageKit
+        imagekitResponse = await imagekit.upload({
+          file: req.file.buffer.toString("base64"), // base64 encoded image
+          fileName: Date.now() + path.extname(req.file.originalname),
+        });
+        imageUrl = imagekitResponse.url;
+      } catch (uploadError) {
+        console.error("Error uploading image to ImageKit:", uploadError);
+        return res.status(500).json({ error: "Failed to upload image to ImageKit" });
+      }
     }
 
     const postData = {
