@@ -8,6 +8,7 @@ const PostSchema = new mongoose.Schema({
   video: { type: String }, // Path to video file
   email: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 // Add index on createdAt for faster sorting

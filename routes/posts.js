@@ -103,4 +103,44 @@ router.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
+// Like or unlike a post (toggle)
+router.post("/:id/like", auth, async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user.id; // Assuming auth middleware sets req.user
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Initialize likes array if not present
+    if (!post.likes) {
+      post.likes = [];
+    }
+
+    const index = post.likes.indexOf(userId);
+    let liked;
+    if (index === -1) {
+      // User has not liked the post, add like
+      post.likes.push(userId);
+      liked = true;
+    } else {
+      // User already liked the post, remove like
+      post.likes.splice(index, 1);
+      liked = false;
+    }
+
+    await post.save();
+
+    res.json({
+      likesCount: post.likes.length,
+      liked: liked,
+    });
+  } catch (err) {
+    console.error("Error toggling like:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
